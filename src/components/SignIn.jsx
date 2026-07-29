@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
+import HeaderLogo from './HeaderLogo'
 
 export default function SignIn({ onContinue, loading }) {
   const [name, setName] = useState('')
@@ -7,67 +8,93 @@ export default function SignIn({ onContinue, loading }) {
   const [error, setError] = useState('')
 
   const isEmailValid = useMemo(() => /.+@.+\..+/.test(email.trim()), [email])
+  const isFormValid = useMemo(() => name.trim().length > 0 && isEmailValid, [name, isEmailValid])
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    console.log('SignIn handleSubmit', { name: name.trim(), email: email.trim(), isEmailValid })
 
-    if (!name.trim() || !email.trim()) {
-      console.log('SignIn validation failed: missing fields')
-      setError('Please fill in your name and email.')
+    if (!name.trim()) {
+      setError('Please enter your Full Name.')
       return
     }
 
     if (!isEmailValid) {
-      console.log('SignIn validation failed: invalid email')
-      setError('Please enter a valid email address.')
+      setError('Please enter a valid Email Address.')
       return
     }
 
     setError('')
- console.log("Before onContinue");
+    if (!onContinue) return
 
-if (!onContinue) {
-    console.error("onContinue is undefined");
-    return;
-}
-
-console.log("Calling onContinue...");
-
-onContinue({
-    name: name.trim(),
-    email: email.trim().toLowerCase(),
-});
-
-console.log("After onContinue");
+    onContinue({
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+    })
   }
 
   return (
     <div className="start-screen">
       <motion.div
-        className="start-card card-torn"
-        initial={{ opacity: 0, y: 24 }}
+        className="start-container"
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
       >
-        <div className="hero-badge">Mission Brief</div>
-        <span className="eyebrow">Campus Club · Hide &amp; Seek</span>
-        <h1 className="start-title">Join the mission</h1>
-        <p className="start-copy">Enter your details and step into the hunt for the camouflaged club member.</p>
+        <div className="start-hero-header">
+          <HeaderLogo size="large" />
+          <span className="eyebrow">Technical Club Flagship</span>
+          <h1 className="start-title">5-Minute Competition</h1>
+          <p className="start-copy">
+            Discover hidden objects across 15 levels in 5 minutes! Score 100 points per discovery.
+          </p>
+        </div>
 
         <form className="start-form" onSubmit={handleSubmit}>
-          <label className="start-label" htmlFor="player-name">Name</label>
-          <input id="player-name" className="start-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Devansh Tiwari" />
+          <div className="input-field-group">
+            <label className="start-label" htmlFor="player-name">
+              Full Name *
+            </label>
+            <input
+              id="player-name"
+              className="glass-input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="krish Mishra"
+              required
+            />
+          </div>
 
-          <label className="start-label" htmlFor="player-email">Email</label>
-          <input id="player-email" className="start-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+          <div className="input-field-group">
+            <label className="start-label" htmlFor="player-email">
+              Email Address *
+            </label>
+            <input
+              id="player-email"
+              className="glass-input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@gmail.com"
+              required
+            />
+          </div>
 
           {error ? <p className="form-error">{error}</p> : null}
 
-          <motion.button type="submit" className="btn btn-primary start-button" whileTap={{ scale: 0.97 }} disabled={loading}>
-            {loading ? 'Signing in...' : 'Continue'}
+          <motion.button
+            type="submit"
+            className={`btn btn-gradient-blue start-button ${!isFormValid ? 'btn-disabled' : ''}`}
+            whileHover={isFormValid ? { y: -2 } : {}}
+            whileTap={isFormValid ? { scale: 0.96 } : {}}
+            disabled={loading || !isFormValid}
+          >
+            {loading ? 'Starting...' : 'Start Game 🚀'}
           </motion.button>
         </form>
+
+        <footer className="start-footer">
+          Technical Club © 2026 • Official Event Competition
+        </footer>
       </motion.div>
     </div>
   )

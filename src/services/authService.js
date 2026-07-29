@@ -47,6 +47,8 @@ export const signInGuest = async (profileData = {}) => {
   }
 }
 
+
+
 export const signOutUser = async () => {
   if (!auth) return
   return firebaseSignOut(auth)

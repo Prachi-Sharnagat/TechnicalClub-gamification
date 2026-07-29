@@ -1,6 +1,6 @@
 import { doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
-
+// decode the meme
 const GAME_STATUS_DOC = 'current'
 
 export const isAdmin = (userProfile = {}) => Boolean(userProfile?.admin)

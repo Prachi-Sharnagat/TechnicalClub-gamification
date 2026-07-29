@@ -30,17 +30,16 @@ export default function StartScreen({ onStart, levelCount }) {
         <KiteMark className="start-kite start-kite--one" />
         <KiteMark className="start-kite start-kite--two" />
 
-        <span className="eyebrow">Campus Club · Hide &amp; Seek</span>
+        <span className="eyebrow">Hidden Object Quiz</span>
         <h1 className="start-title">
           Spot the
           <br />
-          Camouflaged
+          Hidden
           <br />
-          Club Member
+          Object
         </h1>
         <p className="start-copy">
-          Somewhere in each courtyard scene, one club member is hiding in plain
-          sight. Look close, click fast — {levelCount} scenes are waiting.
+          Each scene hides a specific object in plain sight. Study the image, choose the answer, or tap the hotspot — {levelCount} scenes are waiting.
         </p>
 
         <form className="start-form" onSubmit={handleSubmit}>

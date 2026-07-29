@@ -1,55 +1,167 @@
-const baseScenes = [
+export const levels = [
   {
-    sceneImage: '/levels/amphitheater-1.jpg',
-    hitbox: { x: 54.5, y: 76, width: 5.5, height: 12 },
-    member: {
-      name: 'Kiran Bhatt',
-      role: 'Campus Gardening Club — Founder',
-      intro: "Been quietly tending this courtyard for three years. If it's green and growing here, Kiran probably planted it.",
-      skills: ['Composting', 'Native Plants', 'Patience'],
-      avatar: '/levels/avatar.svg',
-    },
-  },
-  {
-    sceneImage: '/levels/amphitheater-2.jpg',
-    hitbox: { x: 47, y: 62, width: 5.5, height: 17 },
-    member: {
-      name: 'Arjun Mehta',
-      role: 'Sketch Club — Resident Artist',
-      intro: 'Sits in the same spot every afternoon, sketchbook open, waiting for the light under the tree to turn gold.',
-      skills: ['Ink Wash', 'Portraits', 'Street Sketching'],
-      avatar: '/levels/avatar.svg',
-    },
-  },
-]
-
-const additionalMembers = [
-  { name: 'Mira Shah', role: 'Drama Club — Stage Lead', intro: 'Always appears where the spotlight is brightest.', skills: ['Storytelling', 'Stagecraft', 'Timing'], avatar: '/levels/avatar.svg' },
-  { name: 'Noah Dsouza', role: 'Debate Society — Captain', intro: 'A calm voice that knows exactly when to break the silence.', skills: ['Argument', 'Research', 'Confidence'], avatar: '/levels/avatar.svg' },
-  { name: 'Tanya Rao', role: 'Music Club — Composer', intro: 'The rhythm in the room always changes when Tanya arrives.', skills: ['Composition', 'Rhythm', 'Curation'], avatar: '/levels/avatar.svg' },
-  { name: 'Rohan Iyer', role: 'Coding Club — Mentor', intro: 'The smallest clue often points to the strongest problem-solver.', skills: ['Patterns', 'Logic', 'Mentorship'], avatar: '/levels/avatar.svg' },
-  { name: 'Sneha Verma', role: 'Robotics Club — Builder', intro: 'Every mechanism has a quiet architect and Sneha is one of them.', skills: ['CAD', 'Testing', 'Precision'], avatar: '/levels/avatar.svg' },
-  { name: 'Ayaan Khan', role: 'Photography Club — Curator', intro: 'Hidden behind frame and focus, Ayaan watches the world differently.', skills: ['Composition', 'Light', 'Story'], avatar: '/levels/avatar.svg' },
-  { name: 'Pooja Menon', role: 'Literature Club — Editor', intro: 'A sharp eye and a curious mind make Pooja easy to miss.', skills: ['Editing', 'Analysis', 'Expression'], avatar: '/levels/avatar.svg' },
-  { name: 'Vikram Singh', role: 'Sports Club — Captain', intro: 'The first hint is often movement, and Vikram moves with purpose.', skills: ['Strategy', 'Leadership', 'Focus'], avatar: '/levels/avatar.svg' },
-]
-
-export const levels = Array.from({ length: 20 }, (_, index) => {
-  const base = baseScenes[index % baseScenes.length]
-  const member = additionalMembers[index % additionalMembers.length]
-
-  return {
-    id: index + 1,
-    sceneImage: base.sceneImage,
+    id: 1,
+    image: 'q1.jpg',
+    sceneImage: '/levels/q1.jpg',
     hitbox: {
-      x: Math.min(88, base.hitbox.x + (index % 3) * 2.2),
-      y: Math.min(88, base.hitbox.y - (index % 2) * 3),
-      width: Math.max(4.8, base.hitbox.width + (index % 2) * 0.6),
-      height: Math.max(8, base.hitbox.height + (index % 3) * 1.2),
+      x: 40.9,
+      y: 58.6,
+      width: 20.3,
+      height: 18.3,
     },
-    member: {
-      ...member,
-      avatar: member.avatar,
+  },
+  {
+    id: 2,
+    image: 'q2.jpeg',
+    sceneImage: '/levels/q2.jpeg',
+    hitbox: {
+      x: 39.8,
+      y: 31.0,
+      width: 11.4,
+      height: 14.6,
     },
-  }
-})
+  },
+  {
+    id: 3,
+    image: 'q3.png',
+    sceneImage: '/levels/q3.png',
+    hitbox: {
+      x: 0.0,
+      y: 14.9,
+      width: 11.8,
+      height: 19.2,
+    },
+  },
+  {
+    id: 4,
+    image: 'q4.png',
+    sceneImage: '/levels/q4.png',
+    hitbox: {
+      x: 5.7,
+      y: 59.8,
+      width: 22.7,
+      height: 34.7,
+    },
+  },
+  {
+    id: 5,
+    image: 'q5.png',
+    sceneImage: '/levels/q5.png',
+    hitbox: {
+      x: 45.2,
+      y: 72.3,
+      width: 10.0,
+      height: 12.0,
+    },
+  },
+  {
+    id: 6,
+    image: 'q6.png',
+    sceneImage: '/levels/q6.png',
+    hitbox: {
+      x: 40.7,
+      y: 67.4,
+      width: 10.0,
+      height: 12.0,
+    },
+  },
+  {
+    id: 7,
+    image: 'q7.png',
+    sceneImage: '/levels/q7.png',
+    hitbox: {
+      x: 6.2,
+      y: 21.7,
+      width: 22.0,
+      height: 53.7,
+    },
+  },
+  {
+    id: 8,
+    image: 'q8.png',
+    sceneImage: '/levels/q8.png',
+    hitbox: {
+      x: 0.0,
+      y: 1.3,
+      width: 38.9,
+      height: 36.1,
+    },
+  },
+  {
+    id: 9,
+    image: 'q9.png',
+    sceneImage: '/levels/q9.png',
+    hitbox: {
+      x: 3.3,
+      y: 14.7,
+      width: 26.6,
+      height: 38.9,
+    },
+  },
+  {
+    id: 10,
+    image: 'q10.png',
+    sceneImage: '/levels/q10.png',
+    hitbox: {
+      x: 13.1,
+      y: 20.1,
+      width: 13.6,
+      height: 39.1,
+    },
+  },
+  {
+    id: 11,
+    image: 'q11.png',
+    sceneImage: '/levels/q11.png',
+    hitbox: {
+      x: 74.5,
+      y: 2.2,
+      width: 22.7,
+      height: 13.6,
+    },
+  },
+  {
+    id: 12,
+    image: 'q12.png',
+    sceneImage: '/levels/q12.png',
+    hitbox: {
+      x: 27.3,
+      y: 37.6,
+      width: 20.9,
+      height: 30.5,
+    },
+  },
+  {
+    id: 13,
+    image: 'q13.png',
+    sceneImage: '/levels/q13.png',
+    hitbox: {
+      x: 1.3,
+      y: 0.0,
+      width: 25.8,
+      height: 50.4,
+    },
+  },
+  {
+    id: 14,
+    image: 'q14.png',
+    sceneImage: '/levels/q14.png',
+    hitbox: {
+      x: 17.9,
+      y: 58.2,
+      width: 10.8,
+      height: 37.7,
+    },
+  },
+  {
+    id: 15,
+    image: 'q15.png',
+    sceneImage: '/levels/q15.png',
+    hitbox: {
+      x: 12.6,
+      y: 18.2,
+      width: 25.9,
+      height: 23.2,
+    },
+  },
+]

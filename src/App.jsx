@@ -4,164 +4,112 @@ import Game from './components/Game'
 import Leaderboard from './components/Leaderboard'
 import LoadingScreen from './components/LoadingScreen'
 import SignIn from './components/SignIn'
+import HitboxEditor from './components/HitboxEditor'
 import { levels as baseLevels } from './data/levels'
 import { listenToAuth, signInGuest } from './services/authService'
-import { listenGameStatus } from './services/gameService'
-import { listenToLeaderboard, submitScore } from './services/leaderboardService'
-
-const shuffleLevels = (items) => {
-  const next = [...items]
-
-  for (let index = next.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1))
-    ;[next[index], next[swapIndex]] = [next[swapIndex], next[index]]
-  }
-
-  return next
-}
+import { fetchTopLeaderboard, submitScore } from './services/leaderboardService'
 
 export default function App() {
   const [authReady, setAuthReady] = useState(false)
   const [loading, setLoading] = useState(false)
   const [profile, setProfile] = useState(null)
-  const [sessionLevels, setSessionLevels] = useState([])
+  const [sessionLevels, setSessionLevels] = useState(baseLevels)
   const [sessionKey, setSessionKey] = useState(0)
   const [leaderboardEntries, setLeaderboardEntries] = useState([])
   const [showLeaderboard, setShowLeaderboard] = useState(false)
-  const [gameStatus, setGameStatus] = useState({ started: false })
+  const [showHitboxEditor, setShowHitboxEditor] = useState(false)
 
   useEffect(() => {
-    const unsubscribeAuth = listenToAuth((user) => {
+    const unsubscribeAuth = listenToAuth(() => {
       setAuthReady(true)
-
-      if (!user) {
-        setProfile(null)
-        return
-      }
-
-      setProfile((previous) => {
-        if (previous) return previous
-        return {
-          uid: user.uid,
-          name: user.displayName || '',
-          email: '',
-          admin: false,
-        }
-      })
     })
-
-    const unsubscribeGameStatus = listenGameStatus((status) => setGameStatus(status || { started: false }))
-
-    return () => {
-      unsubscribeAuth()
-      unsubscribeGameStatus()
-    }
+    return () => unsubscribeAuth()
   }, [])
 
-  useEffect(() => {
-    if (!profile?.uid) return undefined
-
-    const unsubscribe = listenToLeaderboard((entries) => setLeaderboardEntries(entries))
-    return () => unsubscribe?.()
-  }, [profile?.uid])
+  const handleOpenLeaderboard = async () => {
+    const top5 = await fetchTopLeaderboard()
+    setLeaderboardEntries(top5)
+    setShowLeaderboard(true)
+  }
 
   const handleContinue = async ({ name, email }) => {
-    console.log('App handleContinue start', { name, email })
     setLoading(true)
 
     try {
       const user = await signInGuest({ name, email })
-      console.log('App received signInGuest result', user)
       const nextProfile = {
         uid: user?.uid || `local-${Date.now()}`,
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        admin: false,
       }
 
       setProfile(nextProfile)
-      setSessionLevels(shuffleLevels(baseLevels))
+      setSessionLevels(baseLevels)
       setSessionKey((value) => value + 1)
       setShowLeaderboard(false)
-      console.log('App profile set and navigation should proceed')
     } catch (error) {
       console.error('App handleContinue failed', error)
+      const nextProfile = {
+        uid: `local-${Date.now()}`,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+      }
+      setProfile(nextProfile)
+      setSessionLevels(baseLevels)
+      setSessionKey((value) => value + 1)
+      setShowLeaderboard(false)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleRestart = () => {
-    setSessionLevels(shuffleLevels(baseLevels))
-    setSessionKey((value) => value + 1)
-    setShowLeaderboard(false)
-  }
-
   const handleComplete = async (result) => {
     const payload = {
       uid: profile?.uid || `local-${Date.now()}`,
-      name: profile?.name || 'Player',
-      email: profile?.email,
-      time: result.seconds,
-      wrongClicks: result.wrongClicks,
-      accuracy: result.accuracy,
+      name: profile?.name || result.name || 'Player',
+      email: profile?.email || result.email || '',
+      score: result.score || 0,
+      correctCount: result.correctCount || 0,
+      wrongClicks: result.wrongClicks || 0,
+      skippedCount: result.skippedCount || 0,
+      totalTimeUsed: result.totalTimeUsed || 0,
       completedAt: new Date().toISOString(),
     }
 
-    await submitScore(payload)
-    setShowLeaderboard(true)
+    return await submitScore(payload)
   }
 
   if (!authReady) {
-    return <LoadingScreen message="Connecting to your mission..." />
+    return <LoadingScreen message="Preparing competition..." />
   }
 
   if (!profile) {
     return <SignIn onContinue={handleContinue} loading={loading} />
   }
 
+  if (showHitboxEditor) {
+    return <HitboxEditor onBack={() => setShowHitboxEditor(false)} />
+  }
+
   return (
     <div className="app-shell">
-      <div className="mission-banner">
-        <div>
-          <p className="eyebrow">Mission Status</p>
-          <strong>{gameStatus.started ? 'Live' : 'Preparing'}</strong>
-        </div>
-        <span className="banner-pill">{profile.name}</span>
-      </div>
-
-      {/* <Game
+      <Game
         key={sessionKey}
         playerName={profile.name}
+        email={profile.email}
         levels={sessionLevels}
-        onRestart={handleRestart}
         onComplete={handleComplete}
-        onViewLeaderboard={() => setShowLeaderboard(true)}
+        onViewLeaderboard={handleOpenLeaderboard}
       />
 
       <AnimatePresence>
         {showLeaderboard ? (
-          <Leaderboard entries={leaderboardEntries} onClose={() => setShowLeaderboard(false)} />
-
+          <Leaderboard
+            entries={leaderboardEntries}
+            onClose={() => setShowLeaderboard(false)}
+          />
         ) : null}
-      </AnimatePresence> */}
-      <Game
-  key={sessionKey}
-  playerName={profile.name}
-  levels={sessionLevels}
-  onRestart={handleRestart}
-  onComplete={handleComplete}
-  onViewLeaderboard={() => setShowLeaderboard(true)}
-/>
-
-<AnimatePresence>
-  {showLeaderboard ? (
-    <Leaderboard
-      entries={leaderboardEntries}
-      onClose={() => setShowLeaderboard(false)}
-    />
-  ) : null}
-</AnimatePresence>
+      </AnimatePresence>
     </div>
   )
 }

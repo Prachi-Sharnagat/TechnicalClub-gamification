@@ -27,4 +27,4 @@ if (hasConfig) {
   db = null
 }
 
-export { auth, db }
+export { app, auth, db }
