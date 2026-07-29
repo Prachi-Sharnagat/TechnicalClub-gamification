@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import HeaderLogo from './HeaderLogo'
 import { playTrophySound } from '../utils/soundUtils'
@@ -24,14 +24,6 @@ export default function Results({
 }) {
   const [displayScore, setDisplayScore] = useState(0)
   const [countdown, setCountdown] = useState(() => Math.max(0, remainingSeconds))
-  const hasNavigatedRef = useRef(false)
-
-  const handleNavigateToLeaderboard = useCallback(() => {
-    if (!hasNavigatedRef.current) {
-      hasNavigatedRef.current = true
-      onViewLeaderboard?.()
-    }
-  }, [onViewLeaderboard])
 
   // Play fanfare audio on launch
   useEffect(() => {
@@ -48,21 +40,26 @@ export default function Results({
     return () => clearTimeout(timer)
   }, [displayScore, totalScore])
 
-  const isExpired = countdown <= 0
-
   // Live countdown using remaining competition time (300s - Time Used)
   useEffect(() => {
-    if (isExpired) {
-      handleNavigateToLeaderboard()
+    if (countdown <= 0) {
+      onViewLeaderboard?.()
       return undefined
     }
 
     const timer = setInterval(() => {
-      setCountdown((prev) => Math.max(0, prev - 1))
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          onViewLeaderboard?.()
+          return 0
+        }
+        return prev - 1
+      })
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [isExpired, handleNavigateToLeaderboard])
+  }, [countdown, onViewLeaderboard])
 
   return (
     <div className="results-screen">
@@ -145,7 +142,7 @@ export default function Results({
         <div className="results-actions">
           <motion.button
             className="btn btn-primary btn-full-width"
-            onClick={handleNavigateToLeaderboard}
+            onClick={onViewLeaderboard}
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.95 }}
           >

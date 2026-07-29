@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import TopBar from './TopBar'
 import ImageScene from './ImageScene'
@@ -23,28 +23,14 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
   const [levelSolved, setLevelSolved] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [finished, setFinished] = useState(false)
-  const [finalTimeUsed, setFinalTimeUsed] = useState(0)
 
   const completedRef = useRef(false)
   const startTimeRef = useRef(null)
   const timerIntervalRef = useRef(null)
 
-  const safeLevels = useMemo(() => (Array.isArray(levels) ? levels : []), [levels])
+  const safeLevels = Array.isArray(levels) ? levels : []
   const currentLevel = safeLevels[levelIndex] || safeLevels[0]
   const isFinalLevel = safeLevels.length > 0 && levelIndex === safeLevels.length - 1
-
-  const finishGame = useCallback(() => {
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current)
-      timerIntervalRef.current = null
-    }
-
-    const elapsed = startTimeRef.current
-      ? Math.min(COMPETITION_DURATION_SECONDS, Math.floor((Date.now() - startTimeRef.current) / 1000))
-      : 0
-    setFinalTimeUsed(elapsed)
-    setFinished(true)
-  }, [])
 
   // Preload all 15 question images into memory for 60fps instant level switching
   useEffect(() => {
@@ -73,7 +59,9 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
       setRemainingSeconds(remaining)
 
       if (remaining <= 0) {
-        finishGame()
+        clearInterval(timerIntervalRef.current)
+        timerIntervalRef.current = null
+        setFinished(true)
       }
     }, 200)
   }
@@ -94,6 +82,10 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
       timerIntervalRef.current = null
     }
 
+    const totalTimeUsed = startTimeRef.current
+      ? Math.min(COMPETITION_DURATION_SECONDS, Math.floor((Date.now() - startTimeRef.current) / 1000))
+      : 0
+
     const doSubmit = async () => {
       if (onComplete) {
         const res = await onComplete({
@@ -103,14 +95,14 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
           correctCount,
           wrongClicks,
           skippedCount,
-          totalTimeUsed: finalTimeUsed,
+          totalTimeUsed,
         })
         setSubmissionResult(res)
       }
     }
 
     doSubmit()
-  }, [correctCount, email, finalTimeUsed, finished, onComplete, playerName, score, skippedCount, wrongClicks])
+  }, [correctCount, email, finished, onComplete, playerName, score, skippedCount, wrongClicks])
 
   const handleWrongClick = () => {
     if (finished || !gameStarted) return
@@ -132,7 +124,7 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
     setSkippedCount((prev) => prev + 1)
 
     if (isFinalLevel) {
-      finishGame()
+      setFinished(true)
     } else {
       setLevelIndex((prev) => prev + 1)
       setLevelSolved(false)
@@ -145,7 +137,7 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
     setLevelSolved(false)
 
     if (isFinalLevel) {
-      finishGame()
+      setFinished(true)
     } else {
       setLevelIndex((prev) => prev + 1)
     }
@@ -156,7 +148,10 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
   }
 
   if (finished) {
-    const remTime = Math.max(0, COMPETITION_DURATION_SECONDS - finalTimeUsed)
+    const totalTimeUsed = startTimeRef.current
+      ? Math.min(COMPETITION_DURATION_SECONDS, Math.floor((Date.now() - startTimeRef.current) / 1000))
+      : 0
+    const remTime = Math.max(0, COMPETITION_DURATION_SECONDS - totalTimeUsed)
 
     return (
       <Results
@@ -164,7 +159,7 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
         correctCount={correctCount}
         wrongClicks={wrongClicks}
         skippedCount={skippedCount}
-        totalTimeUsed={finalTimeUsed}
+        totalTimeUsed={totalTimeUsed}
         remainingSeconds={remTime}
         submissionResult={submissionResult}
         onViewLeaderboard={onViewLeaderboard}

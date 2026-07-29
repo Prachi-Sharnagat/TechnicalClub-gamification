@@ -13,7 +13,7 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false)
   const [loading, setLoading] = useState(false)
   const [profile, setProfile] = useState(null)
-  const [sessionLevels, setSessionLevels] = useState(baseLevels)
+  const [sessionLevels, setSessionLevels] = useState([])
   const [sessionKey, setSessionKey] = useState(0)
   const [leaderboardEntries, setLeaderboardEntries] = useState([])
   const [showLeaderboard, setShowLeaderboard] = useState(false)
@@ -25,6 +25,11 @@ export default function App() {
     })
     return () => unsubscribeAuth()
   }, [])
+
+  useEffect(() => {
+    if (!profile?.uid) return
+    setSessionLevels(baseLevels)
+  }, [profile?.uid])
 
   const handleOpenLeaderboard = async () => {
     const top5 = await fetchTopLeaderboard()

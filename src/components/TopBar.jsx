@@ -64,49 +64,47 @@ export default function TopBar({
 
   return (
     <header className={`topbar card-glass ${getTimerHeaderClass()}`}>
-      <div className="topbar-container">
-        <HeaderLogo size="small" className="topbar-logo" />
+      <HeaderLogo size="small" />
 
-        <div className="hud-row">
-          <div className="hud-item">
-            <span className="hud-label">LEVEL</span>
-            <span className="hud-value">{levelIndex + 1}/{levelCount}</span>
-          </div>
+      <div className="hud-row">
+        <div className="hud-item">
+          <span className="hud-label">LEVEL</span>
+          <span className="hud-value">{levelIndex + 1} / {levelCount}</span>
+        </div>
 
-          <div className="hud-item">
-            <span className="hud-label">SCORE</span>
-            <motion.span
-              className="hud-value hud-gold"
-              animate={{ scale: displayScore !== score ? [1, 1.25, 1] : 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              ⭐ {displayScore}
-            </motion.span>
-          </div>
+        <div className="hud-item">
+          <span className="hud-label">SCORE</span>
+          <motion.span
+            className="hud-value hud-gold"
+            animate={{ scale: displayScore !== score ? [1, 1.25, 1] : 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            ⭐ {displayScore}
+          </motion.span>
+        </div>
 
-          <div className="hud-item">
-            <span className="hud-label">TIME</span>
-            <motion.span
-              className={`hud-value topbar-mono ${
-                remainingSeconds <= 30 ? 'hud-danger' : ''
-              }`}
-              animate={
-                remainingSeconds <= 10
-                  ? { scale: [1, 1.15, 1] }
-                  : {}
-              }
-              transition={{ duration: 1, repeat: remainingSeconds <= 10 ? Infinity : 0 }}
-            >
-              ⏱ {formatTimer(remainingSeconds)}
-            </motion.span>
-          </div>
+        <div className="hud-item">
+          <span className="hud-label">TIME LEFT</span>
+          <motion.span
+            className={`hud-value topbar-mono ${
+              remainingSeconds <= 30 ? 'hud-danger' : ''
+            }`}
+            animate={
+              remainingSeconds <= 10
+                ? { scale: [1, 1.15, 1] }
+                : {}
+            }
+            transition={{ duration: 1, repeat: remainingSeconds <= 10 ? Infinity : 0 }}
+          >
+            ⏱ {formatTimer(remainingSeconds)}
+          </motion.span>
+        </div>
 
-          <div className="hud-item">
-            <span className="hud-label">WRONG</span>
-            <motion.span className="hud-value hud-wrong" animate={wrongControls}>
-              ❌ {wrongClicks}
-            </motion.span>
-          </div>
+        <div className="hud-item">
+          <span className="hud-label">WRONG CLICKS</span>
+          <motion.span className="hud-value hud-wrong" animate={wrongControls}>
+            ❌ {wrongClicks}
+          </motion.span>
         </div>
       </div>
     </header>

@@ -39,7 +39,7 @@ export const playCountdownSound = (step) => {
 
     osc.start()
     osc.stop(ctx.currentTime + (isGo ? 0.4 : 0.2))
-  } catch {
+  } catch (err) {
     // Audio context fallback
   }
 }
@@ -65,7 +65,7 @@ export const playWrongSound = () => {
 
     osc.start()
     osc.stop(ctx.currentTime + 0.25)
-  } catch {
+  } catch (err) {
     // Audio fallback
   }
 }
@@ -93,7 +93,7 @@ export const playSuccessSound = () => {
       osc.start(ctx.currentTime + index * 0.08)
       osc.stop(ctx.currentTime + index * 0.08 + 0.3)
     })
-  } catch {
+  } catch (err) {
     // Audio fallback
   }
 }
@@ -118,7 +118,7 @@ export const playTickSound = () => {
 
     osc.start()
     osc.stop(ctx.currentTime + 0.05)
-  } catch {
+  } catch (err) {
     // Audio fallback
   }
 }
@@ -146,7 +146,7 @@ export const playTrophySound = () => {
       osc.start(ctx.currentTime + index * 0.12)
       osc.stop(ctx.currentTime + index * 0.12 + 0.5)
     })
-  } catch {
+  } catch (err) {
     // Audio fallback
   }
 }
@@ -157,7 +157,7 @@ export const triggerVibration = (pattern = [40]) => {
     if (typeof window !== 'undefined' && 'navigator' in window && navigator.vibrate) {
       navigator.vibrate(pattern)
     }
-  } catch {
+  } catch (err) {
     // Haptics fallback
   }
 }

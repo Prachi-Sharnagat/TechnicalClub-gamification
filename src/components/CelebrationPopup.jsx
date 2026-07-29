@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import HeaderLogo from './HeaderLogo'
 
-export default function CelebrationPopup({ totalScore, isFinalLevel, onNext }) {
+export default function CelebrationPopup({ score, totalScore, isFinalLevel, onNext }) {
   return (
     <motion.div
       className="popup-overlay"
