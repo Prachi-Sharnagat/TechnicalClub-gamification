@@ -27,9 +27,9 @@ export const levels = [
     sceneImage: '/levels/q3.png',
     hitbox: {
       x: 0.0,
-      y: 14.9,
-      width: 11.8,
-      height: 19.2,
+      y: 0.8,
+      width: 26.7,
+      height: 46.0,
     },
   },
   {
@@ -37,10 +37,10 @@ export const levels = [
     image: 'q4.png',
     sceneImage: '/levels/q4.png',
     hitbox: {
-      x: 5.7,
-      y: 59.8,
-      width: 22.7,
-      height: 34.7,
+      x: 11.2,
+      y: 54.1,
+      width: 24.2,
+      height: 42.0,
     },
   },
   {
@@ -105,8 +105,8 @@ export const levels = [
     hitbox: {
       x: 13.1,
       y: 20.1,
-      width: 13.6,
-      height: 39.1,
+      width: 15.4,
+      height: 46.7,
     },
   },
   {

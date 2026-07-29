@@ -1,0 +1,11 @@
+config:
+  target: "http://localhost:4173"
+  phases:
+    - duration: 10
+      arrivalRate: 30
+      name: "Load 300 virtual users over 10 seconds"
+scenarios:
+  - name: "Visit Home Page"
+    flow:
+      - get:
+          url: "/"

@@ -17,7 +17,9 @@ export default function App() {
   const [sessionKey, setSessionKey] = useState(0)
   const [leaderboardEntries, setLeaderboardEntries] = useState([])
   const [showLeaderboard, setShowLeaderboard] = useState(false)
-  const [showHitboxEditor, setShowHitboxEditor] = useState(false)
+  const [showHitboxEditor, setShowHitboxEditor] = useState(
+    window.location.pathname === '/hitbox' || window.location.pathname === '/hitbox/'
+  )
 
   useEffect(() => {
     const unsubscribeAuth = listenToAuth(() => {
@@ -84,16 +86,19 @@ export default function App() {
     return await submitScore(payload)
   }
 
+  if (showHitboxEditor) {
+    return <HitboxEditor onBack={() => {
+      window.history.pushState({}, '', '/')
+      setShowHitboxEditor(false)
+    }} />
+  }
+
   if (!authReady) {
     return <LoadingScreen message="Preparing competition..." />
   }
 
   if (!profile) {
     return <SignIn onContinue={handleContinue} loading={loading} />
-  }
-
-  if (showHitboxEditor) {
-    return <HitboxEditor onBack={() => setShowHitboxEditor(false)} />
   }
 
   return (
