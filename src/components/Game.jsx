@@ -8,7 +8,7 @@ import CelebrationRain from './CelebrationRain'
 
 const COMPETITION_DURATION_SECONDS = 300 // 5 Minutes
 
-export default function Game({ playerName, email, levels, onComplete, onViewLeaderboard }) {
+export default function Game({ playerName, email, levels, onComplete, onViewLeaderboard, onTimerExpired }) {
   const [gameStarted, setGameStarted] = useState(false)
   const [levelIndex, setLevelIndex] = useState(0)
   const [remainingSeconds, setRemainingSeconds] = useState(COMPETITION_DURATION_SECONDS)
@@ -89,6 +89,7 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
     const totalTimeUsed = startTimeRef.current
       ? Math.min(COMPETITION_DURATION_SECONDS, Math.floor((Date.now() - startTimeRef.current) / 1000))
       : 0
+    const remTime = Math.max(0, COMPETITION_DURATION_SECONDS - totalTimeUsed)
 
     const doSubmit = async () => {
       if (onComplete) {
@@ -100,6 +101,7 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
           wrongClicks,
           skippedCount,
           totalTimeUsed,
+          remainingSeconds: remTime,
         })
         setSubmissionResult(res)
       }
@@ -174,6 +176,7 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
         remainingSeconds={remTime}
         submissionResult={submissionResult}
         onViewLeaderboard={onViewLeaderboard}
+        onTimerExpired={onTimerExpired}
       />
     )
   }

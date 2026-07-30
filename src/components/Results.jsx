@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import HeaderLogo from './HeaderLogo'
 import { playTrophySound } from '../utils/soundUtils'
@@ -21,9 +21,12 @@ export default function Results({
   remainingSeconds = 0,
   submissionResult,
   onViewLeaderboard,
+  onTimerExpired,
 }) {
   const [displayScore, setDisplayScore] = useState(0)
   const [countdown, setCountdown] = useState(() => Math.max(0, remainingSeconds))
+  const [isTimerEnded, setIsTimerEnded] = useState(() => Math.max(0, remainingSeconds) <= 0)
+  const autoOpenRef = useRef(false)
 
   // Play fanfare audio on launch
   useEffect(() => {
@@ -40,10 +43,20 @@ export default function Results({
     return () => clearTimeout(timer)
   }, [displayScore, totalScore])
 
-  // Live countdown using remaining competition time (300s - Time Used)
+  // Competition timer countdown & unlock logic
   useEffect(() => {
     if (countdown <= 0) {
-      onViewLeaderboard?.()
+      setIsTimerEnded(true)
+      onTimerExpired?.()
+
+      // Automatically open leaderboard after a short delay once timer expires
+      if (!autoOpenRef.current) {
+        autoOpenRef.current = true
+        const openTimer = setTimeout(() => {
+          onViewLeaderboard?.()
+        }, 1500)
+        return () => clearTimeout(openTimer)
+      }
       return undefined
     }
 
@@ -51,7 +64,15 @@ export default function Results({
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          onViewLeaderboard?.()
+          setIsTimerEnded(true)
+          onTimerExpired?.()
+
+          if (!autoOpenRef.current) {
+            autoOpenRef.current = true
+            setTimeout(() => {
+              onViewLeaderboard?.()
+            }, 1500)
+          }
           return 0
         }
         return prev - 1
@@ -59,7 +80,7 @@ export default function Results({
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [countdown, onViewLeaderboard])
+  }, [countdown, onViewLeaderboard, onTimerExpired])
 
   return (
     <div className="results-screen">
@@ -134,21 +155,35 @@ export default function Results({
           </div>
         </div>
 
-        <div className="auto-redirect-note">
-          Leaderboard opens automatically in{' '}
-          <strong className="topbar-mono auto-redirect-timer">{formatTimer(countdown)}</strong>
-        </div>
+        {/* Competition Timer Status Banner */}
+        {!isTimerEnded ? (
+          <div className="auto-redirect-note">
+            Leaderboard will be available when the competition timer ends.
+            <strong className="topbar-mono auto-redirect-timer" style={{ marginTop: '0.4rem' }}>
+              ⏱ {formatTimer(countdown)}
+            </strong>
+          </div>
+        ) : (
+          <div className="auto-redirect-note" style={{ color: '#16a34a' }}>
+            🎉 Competition timer ended! Leaderboard is now available.
+          </div>
+        )}
 
-        <div className="results-actions">
-          <motion.button
-            className="btn btn-primary btn-full-width"
-            onClick={onViewLeaderboard}
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            View Leaderboard 🏆
-          </motion.button>
-        </div>
+        {/* View Leaderboard Button - ONLY shown when timer reaches 00:00 */}
+        {isTimerEnded ? (
+          <div className="results-actions">
+            <motion.button
+              className="btn btn-primary btn-full-width"
+              onClick={onViewLeaderboard}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              View Leaderboard 🏆
+            </motion.button>
+          </div>
+        ) : null}
       </motion.div>
     </div>
   )
