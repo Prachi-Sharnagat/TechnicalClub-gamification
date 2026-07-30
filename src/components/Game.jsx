@@ -3,12 +3,10 @@ import { AnimatePresence, motion } from 'framer-motion'
 import TopBar from './TopBar'
 import ImageScene from './ImageScene'
 import Results from './Results'
-import CelebrationPopup from './CelebrationPopup'
 import StartCountdown from './StartCountdown'
+import CelebrationRain from './CelebrationRain'
 
 const COMPETITION_DURATION_SECONDS = 300 // 5 Minutes
-
-const confettiPieces = ['✦', '✿', '⬢', '✧', '❋', '✺', '🎉', '⭐']
 
 export default function Game({ playerName, email, levels, onComplete, onViewLeaderboard }) {
   const [gameStarted, setGameStarted] = useState(false)
@@ -27,6 +25,7 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
   const completedRef = useRef(false)
   const startTimeRef = useRef(null)
   const timerIntervalRef = useRef(null)
+  const autoAdvanceTimerRef = useRef(null)
 
   const safeLevels = Array.isArray(levels) ? levels : []
   const currentLevel = safeLevels[levelIndex] || safeLevels[0]
@@ -69,6 +68,7 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
   useEffect(() => {
     return () => {
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current)
+      if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current)
     }
   }, [])
 
@@ -80,6 +80,10 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current)
       timerIntervalRef.current = null
+    }
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current)
+      autoAdvanceTimerRef.current = null
     }
 
     const totalTimeUsed = startTimeRef.current
@@ -114,13 +118,31 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
 
     setScore((prev) => prev + 100)
     setCorrectCount((prev) => prev + 1)
-
     setLevelSolved(true)
     setShowSuccess(true)
+
+    // Automatically move to the next level after ~1.1s (continuous & fast gameplay)
+    if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current)
+    autoAdvanceTimerRef.current = setTimeout(() => {
+      setShowSuccess(false)
+      setLevelSolved(false)
+
+      if (isFinalLevel) {
+        setFinished(true)
+      } else {
+        setLevelIndex((prev) => prev + 1)
+      }
+    }, 1100)
   }
 
   const handleSkip = () => {
     if (finished || !gameStarted) return
+
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current)
+      autoAdvanceTimerRef.current = null
+    }
+
     setSkippedCount((prev) => prev + 1)
 
     if (isFinalLevel) {
@@ -129,17 +151,6 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
       setLevelIndex((prev) => prev + 1)
       setLevelSolved(false)
       setShowSuccess(false)
-    }
-  }
-
-  const handleNext = () => {
-    setShowSuccess(false)
-    setLevelSolved(false)
-
-    if (isFinalLevel) {
-      setFinished(true)
-    } else {
-      setLevelIndex((prev) => prev + 1)
     }
   }
 
@@ -167,7 +178,6 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
     )
   }
 
-
   return (
     <div className={`game-screen ${remainingSeconds <= 10 ? 'screen-last10-pulse' : ''}`}>
       <TopBar
@@ -184,7 +194,7 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
           initial={{ opacity: 0, x: 24 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -24 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
           className="game-scene-wrap"
         >
           {currentLevel ? (
@@ -202,31 +212,9 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
         </motion.div>
       </AnimatePresence>
 
+      {/* Raining Emoji & Confetti Celebration Animation (No Modal, No Backdrop Blur) */}
       <AnimatePresence>
-        {showSuccess && (
-          <>
-            <div className="confetti-layer" aria-hidden="true">
-              {confettiPieces.map((piece, index) => (
-                <motion.span
-                  key={`${piece}-${index}`}
-                  className="confetti-piece"
-                  initial={{ opacity: 0, y: -20, x: (index - 3) * 30 }}
-                  animate={{ opacity: 1, y: 120, rotate: 360 }}
-                  transition={{ duration: 1.2, delay: index * 0.05 }}
-                >
-                  {piece}
-                </motion.span>
-              ))}
-            </div>
-
-            <CelebrationPopup
-              score={100}
-              totalScore={score}
-              isFinalLevel={isFinalLevel}
-              onNext={handleNext}
-            />
-          </>
-        )}
+        {showSuccess && <CelebrationRain key="celebration-rain" />}
       </AnimatePresence>
     </div>
   )

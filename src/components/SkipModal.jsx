@@ -1,32 +1,68 @@
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
-import HeaderLogo from './HeaderLogo'
 
 export default function SkipModal({ onConfirm, onCancel }) {
+  // Listen for Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onCancel?.()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onCancel])
+
+  const handleBackdropClick = (event) => {
+    if (event.target === event.currentTarget) {
+      onCancel?.()
+    }
+  }
+
   return (
     <motion.div
-      className="popup-overlay"
+      className="popup-overlay skip-modal-overlay"
+      onClick={handleBackdropClick}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
     >
       <motion.div
         className="skip-modal-card card-glass"
-        initial={{ opacity: 0, scale: 0.85, y: 20 }}
+        initial={{ opacity: 0, scale: 0.9, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 10 }}
-        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+        transition={{ type: 'spring', stiffness: 380, damping: 26 }}
       >
-        <HeaderLogo size="small" />
-        <h3 className="skip-modal-title">Skip this question?</h3>
-        <p className="skip-modal-copy">You will receive 0 points for this level.</p>
+        <h3 className="skip-modal-title">
+          <span className="skip-modal-icon">⏭️</span> Skip this level?
+        </h3>
+
+        {/* <p className="skip-modal-copy"> */}
+        {/* You'll receive 0 points and move to the next challenge. */}
+        {/* </p> */}
 
         <div className="skip-modal-actions">
-          <button type="button" className="btn btn-ghost" onClick={onCancel}>
+          <motion.button
+            type="button"
+            className="btn-skip-cancel"
+            onClick={onCancel}
+            whileHover={{ scale: 1.02, backgroundColor: '#f8fafc' }}
+            whileTap={{ scale: 0.96 }}
+          >
             Cancel
-          </button>
-          <button type="button" className="btn btn-primary btn-skip-confirm" onClick={onConfirm}>
-            Skip
-          </button>
+          </motion.button>
+
+          <motion.button
+            type="button"
+            className="btn-skip-confirm-gradient"
+            onClick={onConfirm}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
+          >
+            Skip Level <span className="skip-btn-arrow">➔</span>
+          </motion.button>
         </div>
       </motion.div>
     </motion.div>
