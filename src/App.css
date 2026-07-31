@@ -193,10 +193,9 @@
 }
 
 .celebration-points {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #22c55e;
-  margin: 18px 0 24px;
+  width: 290px;
+  height: 190px;
+  margin: 0 auto 24px;
 }
 
 .celebration-next {

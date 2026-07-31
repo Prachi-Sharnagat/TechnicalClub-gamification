@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import HeaderLogo from './HeaderLogo'
 import { playTrophySound } from '../utils/soundUtils'
 
-const confettiPieces = ['✦', '✿', '⬢', '✧', '❋', '✺', '🏆', '⭐']
+// const confettiPieces = ['✦', '✿', '⬢', '✧', '❋', '✺', '🏆', '⭐']
 
 const formatTimer = (totalSec) => {
   const safeSec = Math.max(0, totalSec || 0)
@@ -84,7 +84,7 @@ export default function Results({
 
   return (
     <div className="results-screen">
-      <div className="confetti-layer" aria-hidden="true">
+      {/* <div className="confetti-layer" aria-hidden="true">
         {confettiPieces.map((piece, index) => (
           <motion.span
             key={`${piece}-${index}`}
@@ -96,37 +96,39 @@ export default function Results({
             {piece}
           </motion.span>
         ))}
-      </div>
+      </div> */}
 
       <motion.div
-        className="results-card card-glass"
-        initial={{ opacity: 0, scale: 0.8, y: 30 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="results-container"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
-        <HeaderLogo size="medium" />
+        <div className="results-hero-header">
+          {/* <HeaderLogo size="large" /> */}
 
-        <div className="trophy-wrap">
-          <motion.div
-            className="trophy-icon"
-            initial={{ scale: 0.2, rotate: -20 }}
-            animate={{ scale: [0.2, 1.35, 1], rotate: [-20, 10, 0] }}
-            transition={{ duration: 0.7, ease: 'backOut' }}
-          >
-            🏆
-          </motion.div>
-        </div>
-
-        <span className="eyebrow">Technical Club Flagship</span>
-        <h1 className="results-title">Competition Complete</h1>
-
-        {submissionResult?.duplicate ? (
-          <div className="duplicate-warning">
-            ⚠️ Your score has already been submitted.
+          <div className="trophy-wrap">
+            <motion.div
+              className="trophy-icon"
+              initial={{ scale: 0.2, rotate: -20 }}
+              animate={{ scale: [0.2, 1.35, 1], rotate: [-20, 10, 0] }}
+              transition={{ duration: 0.7, ease: 'backOut' }}
+            >
+              🏆
+            </motion.div>
           </div>
-        ) : (
-          <p className="results-copy">Great effort in the 5-Minute Competition!</p>
-        )}
+
+          <span className="eyebrow">Technical Club Flagship</span>
+          <h1 className="results-title">Competition Complete</h1>
+
+          {submissionResult?.duplicate ? (
+            <div className="duplicate-warning">
+              ⚠️ Your score has already been submitted.
+            </div>
+          ) : (
+            <p className="results-copy">Great effort in the 5-Minute Competition!</p>
+          )}
+        </div>
 
         <div className="results-stats-grid">
           <div className="results-stat-box">
@@ -173,12 +175,12 @@ export default function Results({
         {isTimerEnded ? (
           <div className="results-actions">
             <motion.button
-              className="btn btn-primary btn-full-width"
+              className="btn btn-gradient-blue results-button"
               onClick={onViewLeaderboard}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.96 }}
             >
               View Leaderboard 🏆
             </motion.button>

@@ -23,22 +23,27 @@ const writeStoredScores = (entries) => {
 export const sortLeaderboardEntries = (entries) => {
   return [...entries].sort((a, b) => {
     // 1. Highest Score
-    if ((b.score || 0) !== (a.score || 0)) {
-      return (b.score || 0) - (a.score || 0)
+    const scoreA = Number(a.score) || 0
+    const scoreB = Number(b.score) || 0
+    if (scoreB !== scoreA) {
+      return scoreB - scoreA
     }
-    // 2. Highest Correct Answers
-    if ((b.correctCount || 0) !== (a.correctCount || 0)) {
-      return (b.correctCount || 0) - (a.correctCount || 0)
+
+    // 2. Lowest Completion Time
+    const timeA = Number(a.totalTimeUsed) || 0
+    const timeB = Number(b.totalTimeUsed) || 0
+    if (timeA !== timeB) {
+      return timeA - timeB
     }
+
     // 3. Lowest Wrong Clicks
-    if ((a.wrongClicks || 0) !== (b.wrongClicks || 0)) {
-      return (a.wrongClicks || 0) - (b.wrongClicks || 0)
+    const wrongA = Number(a.wrongClicks) || 0
+    const wrongB = Number(b.wrongClicks) || 0
+    if (wrongA !== wrongB) {
+      return wrongA - wrongB
     }
-    // 4. Lowest Total Time Used
-    if ((a.totalTimeUsed || 0) !== (b.totalTimeUsed || 0)) {
-      return (a.totalTimeUsed || 0) - (b.totalTimeUsed || 0)
-    }
-    // 5. Earliest Timestamp
+
+    // 4. Earliest Completion Timestamp
     return new Date(a.completedAt || 0) - new Date(b.completedAt || 0)
   })
 }
@@ -100,13 +105,12 @@ export const submitScore = async (payload) => {
   return { success: true }
 }
 
-// Bulletproof Top 5 fetch engine (merges Cloud & Local entries smoothly without composite index errors)
-export const fetchTopLeaderboard = async () => {
+// Fetch ALL participant documents from Firestore collection without filtering by current user
+export const fetchAllLeaderboard = async () => {
   const localEntries = readStoredScores()
 
   if (!db) {
-    const sorted = sortLeaderboardEntries(localEntries)
-    return sorted.slice(0, 5)
+    return sortLeaderboardEntries(localEntries)
   }
 
   try {
@@ -133,11 +137,15 @@ export const fetchTopLeaderboard = async () => {
     })
 
     const combined = Array.from(emailMap.values())
-    const sorted = sortLeaderboardEntries(combined)
-    return sorted.slice(0, 5)
+    return sortLeaderboardEntries(combined)
   } catch (err) {
-    console.warn('Firestore fetch top leaderboard fallback:', err)
-    const sorted = sortLeaderboardEntries(localEntries)
-    return sorted.slice(0, 5)
+    console.warn('Firestore fetch all leaderboard fallback:', err)
+    return sortLeaderboardEntries(localEntries)
   }
+}
+
+// Top 5 convenience export
+export const fetchTopLeaderboard = async () => {
+  const all = await fetchAllLeaderboard()
+  return all.slice(0, 5)
 }

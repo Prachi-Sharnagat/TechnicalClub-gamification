@@ -7,7 +7,7 @@ import SignIn from './components/SignIn'
 import HitboxEditor from './components/HitboxEditor'
 import { levels as baseLevels } from './data/levels'
 import { listenToAuth, signInGuest } from './services/authService'
-import { fetchTopLeaderboard, submitScore } from './services/leaderboardService'
+import { fetchAllLeaderboard, submitScore } from './services/leaderboardService'
 
 export default function App() {
   const [authReady, setAuthReady] = useState(false)
@@ -47,8 +47,8 @@ export default function App() {
     }
 
     try {
-      const top5 = await fetchTopLeaderboard()
-      setLeaderboardEntries(top5)
+      const allEntries = await fetchAllLeaderboard()
+      setLeaderboardEntries(allEntries)
       setShowLeaderboard(true)
       window.history.pushState({}, '', '/leaderboard')
     } catch (error) {
@@ -185,6 +185,8 @@ export default function App() {
         {showLeaderboard && canAccessLeaderboard ? (
           <Leaderboard
             entries={leaderboardEntries}
+            currentEmail={profile.email}
+            currentName={profile.name}
             onClose={handleCloseLeaderboard}
           />
         ) : null}
