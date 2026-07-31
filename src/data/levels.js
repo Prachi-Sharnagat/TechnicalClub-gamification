@@ -146,13 +146,14 @@ export const levels = [
   {
     id: 13,
     question: 'Which camera is commonly used for professional photography and videography?',
-    image: 'q13.png',
-    sceneImage: '/levels/q13.png',
+    image: 'q13.jpeg',
+    sceneImage: '/levels/q13.jpeg',
+    answer: 'B',
     hitbox: {
-      x: 1.3,
-      y: 0.0,
-      width: 25.8,
-      height: 50.4,
+      x: 77.4,
+      y: 7.5,
+      width: 14.7,
+      height: 27.6,
     },
   },
   {
