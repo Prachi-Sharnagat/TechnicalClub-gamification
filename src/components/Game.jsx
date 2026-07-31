@@ -6,7 +6,7 @@ import Results from './Results'
 import StartCountdown from './StartCountdown'
 import CelebrationRain from './CelebrationRain'
 
-const COMPETITION_DURATION_SECONDS = 300 // 5 Minutes
+const COMPETITION_DURATION_SECONDS = 150 // 2.5 Minutes
 
 export default function Game({ playerName, email, levels, onComplete, onViewLeaderboard, onTimerExpired }) {
   const [gameStarted, setGameStarted] = useState(false)
@@ -31,7 +31,7 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
   const currentLevel = safeLevels[levelIndex] || safeLevels[0]
   const isFinalLevel = safeLevels.length > 0 && levelIndex === safeLevels.length - 1
 
-  // Preload all 15 question images into memory for 60fps instant level switching
+  // Preload all 12 question images into memory for 60fps instant level switching
   useEffect(() => {
     safeLevels.forEach((lvl) => {
       const src = lvl.sceneImage || lvl.image
@@ -42,7 +42,7 @@ export default function Game({ playerName, email, levels, onComplete, onViewLead
     })
   }, [safeLevels])
 
-  // Start global 5-minute timer only AFTER countdown overlay completes
+  // Start global 2.5-minute timer only AFTER countdown overlay completes
   const handleCountdownComplete = () => {
     setGameStarted(true)
     startTimeRef.current = Date.now()

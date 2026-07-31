@@ -1,18 +1,6 @@
 export const levels = [
   {
     id: 1,
-    question: "Your club needs an eye-catching poster for tomorrow's hackathon. Which tool would help you design it quickly?",
-    image: 'q1.jpg',
-    sceneImage: '/levels/q1.jpg',
-    hitbox: {
-      x: 40.9,
-      y: 58.6,
-      width: 20.3,
-      height: 18.3,
-    },
-  },
-  {
-    id: 2,
     question: 'What is the logo of HTML?',
     image: 'q2.jpeg',
     sceneImage: '/levels/q2.jpeg',
@@ -24,7 +12,7 @@ export const levels = [
     },
   },
   {
-    id: 3,
+    id: 2,
     question: 'Which software is widely used for professional video editing?',
     image: 'q3.png',
     sceneImage: '/levels/q3.png',
@@ -36,7 +24,7 @@ export const levels = [
     },
   },
   {
-    id: 4,
+    id: 3,
     question: 'Which object is often the starting point for many 3D creations?',
     image: 'q4.png',
     sceneImage: '/levels/q4.png',
@@ -48,7 +36,7 @@ export const levels = [
     },
   },
   {
-    id: 5,
+    id: 4,
     question: 'Which application is commonly used to write code?',
     image: 'q5.png',
     sceneImage: '/levels/q5.png',
@@ -60,7 +48,7 @@ export const levels = [
     },
   },
   {
-    id: 6,
+    id: 5,
     question: 'Which technology is mainly responsible for making a webpage look beautiful?',
     image: 'q6.png',
     sceneImage: '/levels/q6.png',
@@ -72,7 +60,7 @@ export const levels = [
     },
   },
   {
-    id: 7,
+    id: 6,
     question: 'Before uploading a movie, what process combines all edits into one final video?',
     image: 'q7.png',
     sceneImage: '/levels/q7.png',
@@ -84,7 +72,7 @@ export const levels = [
     },
   },
   {
-    id: 8,
+    id: 7,
     question: 'A game needs a dragon character before it can be animated. Who creates it?',
     image: 'q8.png',
     sceneImage: '/levels/q8.png',
@@ -96,7 +84,7 @@ export const levels = [
     },
   },
   {
-    id: 9,
+    id: 8,
     question: 'Which sensor is commonly used to measure distance by sending sound waves?',
     image: 'q9.png',
     sceneImage: '/levels/q9.png',
@@ -108,31 +96,7 @@ export const levels = [
     },
   },
   {
-    id: 10,
-    question: 'Which component lights up when electricity flows through it?',
-    image: 'q10.png',
-    sceneImage: '/levels/q10.png',
-    hitbox: {
-      x: 13.1,
-      y: 20.1,
-      width: 15.4,
-      height: 46.7,
-    },
-  },
-  {
-    id: 11,
-    question: "Which element attracts people's attention first on a poster?",
-    image: 'q11.png',
-    sceneImage: '/levels/q11.png',
-    hitbox: {
-      x: 74.5,
-      y: 2.2,
-      width: 22.7,
-      height: 13.6,
-    },
-  },
-  {
-    id: 12,
+    id: 9,
     question: 'Which development board is one of the most popular choices for beginners learning electronics and robotics?',
     image: 'q12.png',
     sceneImage: '/levels/q12.png',
@@ -144,10 +108,10 @@ export const levels = [
     },
   },
   {
-    id: 13,
+    id: 10,
     question: 'Which camera is commonly used for professional photography and videography?',
-    image: 'q13.jpeg',
-    sceneImage: '/levels/q13.jpeg',
+    image: 'q13.png',
+    sceneImage: '/levels/q13.png',
     answer: 'B',
     hitbox: {
       x: 77.4,
@@ -157,7 +121,7 @@ export const levels = [
     },
   },
   {
-    id: 14,
+    id: 11,
     question: 'You can check out our Technical Club page on which social media platform?',
     image: 'q14.png',
     sceneImage: '/levels/q14.png',
@@ -169,7 +133,7 @@ export const levels = [
     },
   },
   {
-    id: 15,
+    id: 12,
     question: 'Who should join the Technical Club?',
     image: 'q15.png',
     sceneImage: '/levels/q15.png',

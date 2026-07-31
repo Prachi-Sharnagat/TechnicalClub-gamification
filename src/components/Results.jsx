@@ -126,7 +126,7 @@ export default function Results({
               ⚠️ Your score has already been submitted.
             </div>
           ) : (
-            <p className="results-copy">Great effort in the 5-Minute Competition!</p>
+            <p className="results-copy">Great effort in the 2.5-Minute Competition!</p>
           )}
         </div>
 

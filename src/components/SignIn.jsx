@@ -43,9 +43,9 @@ export default function SignIn({ onContinue, loading }) {
         <div className="start-hero-header">
           <HeaderLogo size="large" />
           <span className="eyebrow">Technical Club Flagship</span>
-          <h1 className="start-title">5-Minute Competition</h1>
+          <h1 className="start-title">2.5-Minute Competition</h1>
           <p className="start-copy">
-            Discover hidden objects across 15 levels in 5 minutes! Score 100 points per discovery.
+            Discover hidden objects across 12 levels in just 2.5 minutes! Score 100 points per discovery.
           </p>
         </div>
 

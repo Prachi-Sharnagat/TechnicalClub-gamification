@@ -1,5 +1,7 @@
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import HeaderLogo from './HeaderLogo'
+import { subscribeLeaderboard } from '../services/leaderboardService'
 
 const formatTimer = (totalSec) => {
   const safeSec = Math.max(0, totalSec || 0)
@@ -8,9 +10,20 @@ const formatTimer = (totalSec) => {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
 }
 
-export default function Leaderboard({ entries = [], currentEmail, currentName, onClose }) {
+export default function Leaderboard({ entries: initialEntries = [], currentEmail, currentName, onClose }) {
+  const [entries, setEntries] = useState(initialEntries)
+  const userRowRef = useRef(null)
+
   const normalizedCurrentEmail = (currentEmail || '').trim().toLowerCase()
   const normalizedCurrentName = (currentName || '').trim().toLowerCase()
+
+  // Real-time Firestore subscription (onSnapshot)
+  useEffect(() => {
+    const unsubscribe = subscribeLeaderboard((updatedEntries) => {
+      setEntries(updatedEntries)
+    })
+    return () => unsubscribe()
+  }, [])
 
   // Find 0-indexed position of current player in full sorted entries
   const playerIndex = entries.findIndex((e) => {
@@ -19,9 +32,14 @@ export default function Leaderboard({ entries = [], currentEmail, currentName, o
     return emailMatch || nameMatch
   })
 
-  const top5Entries = entries.slice(0, 5)
-  const isPlayerOutsideTop5 = playerIndex >= 5
-  const playerOutsideEntry = isPlayerOutsideTop5 ? entries[playerIndex] : null
+  const userRankText = playerIndex >= 0 ? `#${playerIndex + 1}` : 'N/A'
+
+  // Scroll to current user's row if outside immediate view
+  useEffect(() => {
+    if (userRowRef.current) {
+      userRowRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, [playerIndex, entries.length])
 
   return (
     <div className="start-screen leaderboard-page">
@@ -35,71 +53,74 @@ export default function Leaderboard({ entries = [], currentEmail, currentName, o
           <HeaderLogo size="large" />
           <span className="eyebrow">TECHNICAL CLUB FLAGSHIP</span>
           <h1 className="start-title" style={{ margin: '0.4rem 0 0.2rem' }}>
-            Top 5 Leaderboard 🏆
+            Live Leaderboard 🏆
           </h1>
-          <p className="start-copy" style={{ margin: '0 0 1rem' }}>
-            Official Competition Rankings
+          <p className="start-copy" style={{ margin: '0 0 0.8rem' }}>
+            Real-Time Competition Rankings
           </p>
+
+          {/* User Rank Display */}
+          <div className="user-rank-banner">
+            <span className="user-rank-label">Your Rank:</span>
+            <span className="user-rank-value">{userRankText}</span>
+          </div>
         </div>
 
-        {/* Single Full-Page Leaderboard Card (Matches Login Page Styling, No Double-Cards) */}
+        {/* Full-Page Leaderboard Card with Scrollable Table */}
         <div className="leaderboard-card-wrap card-glass">
           {entries.length === 0 ? (
             <div className="leaderboard-empty">
               No scores submitted yet. Be the first to compete!
             </div>
           ) : (
-            <div className="leaderboard-table-responsive">
+            <div className="leaderboard-table-responsive leaderboard-scroll-box">
               <table className="leaderboard-table">
                 <thead>
                   <tr>
-                    <th className="th-rank">🥇 Rank</th>
+                    <th className="th-rank">Rank</th>
                     <th className="th-name">👤 Name</th>
                     <th className="th-score">⭐ Score</th>
+                    <th className="th-wrong">❌ Wrong Clicks</th>
                     <th className="th-time">⏱ Time</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {top5Entries.map((entry, index) => {
+                  {entries.map((entry, index) => {
+                    const rank = index + 1
                     const isYou =
                       (normalizedCurrentEmail && (entry.email || '').trim().toLowerCase() === normalizedCurrentEmail) ||
                       (normalizedCurrentName && (entry.name || '').trim().toLowerCase() === normalizedCurrentName)
 
+                    let rankIcon = `#${rank}`
+                    if (rank === 1) rankIcon = '🥇 1'
+                    else if (rank === 2) rankIcon = '🥈 2'
+                    else if (rank === 3) rankIcon = '🥉 3'
+                    else if (rank === 4) rankIcon = '🎖️ 4'
+                    else if (rank === 5) rankIcon = '🏅 5'
+
                     return (
                       <tr
-                        key={entry.id || `top-${index}`}
-                        className={`lb-row ${isYou ? 'lb-row-you' : ''} ${index === 0 ? 'rank-gold' : index === 1 ? 'rank-silver' : index === 2 ? 'rank-bronze' : ''
-                          }`}
+                        key={entry.id || `rank-${rank}-${entry.email || index}`}
+                        ref={isYou ? userRowRef : null}
+                        className={`lb-row ${isYou ? 'lb-row-you' : ''} ${
+                          rank <= 5 ? `rank-top5 rank-top-${rank}` : ''
+                        }`}
                       >
                         <td className="lb-rank">
-                          {index === 0 ? '🥇 1' : index === 1 ? '🥈 2' : index === 2 ? '🥉 3' : `#${index + 1}`}
+                          <span className={`rank-badge rank-badge-${rank <= 5 ? rank : 'other'}`}>
+                            {rankIcon}
+                          </span>
                         </td>
                         <td className="lb-name">
                           <span className="player-name-text">{entry.name || 'Player'}</span>
                           {isYou && <span className="you-badge">You</span>}
                         </td>
                         <td className="lb-score">⭐ {entry.score ?? 0}</td>
-                        <td className="lb-time">⏱ {formatTimer(entry.totalTimeUsed)}</td>
+                        <td className="lb-wrong">❌ {entry.wrongClicks ?? 0}</td>
+                        <td className="lb-time">⏱ {formatTimer(entry.totalTimeUsed ?? entry.timeUsed)}</td>
                       </tr>
                     )
                   })}
-
-                  {isPlayerOutsideTop5 && playerOutsideEntry && (
-                    <>
-                      <tr className="lb-separator-row">
-                        <td colSpan="4">•••</td>
-                      </tr>
-                      <tr className="lb-row lb-row-you">
-                        <td className="lb-rank">#{playerIndex + 1}</td>
-                        <td className="lb-name">
-                          <span className="player-name-text">{playerOutsideEntry.name || 'Player'}</span>
-                          <span className="you-badge">You</span>
-                        </td>
-                        <td className="lb-score">⭐ {playerOutsideEntry.score ?? 0}</td>
-                        <td className="lb-time">⏱ {formatTimer(playerOutsideEntry.totalTimeUsed)}</td>
-                      </tr>
-                    </>
-                  )}
                 </tbody>
               </table>
             </div>
