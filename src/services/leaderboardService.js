@@ -159,6 +159,16 @@ export const submitScore = async (payload) => {
   return { success: true }
 }
 
+const getEntryKey = (e) => {
+  const email = (e.email || '').trim().toLowerCase()
+  if (email) return `email:${email}`
+  const uid = (e.uid || '').trim()
+  if (uid && !uid.startsWith('local-')) return `uid:${uid}`
+  const name = (e.name || '').trim().toLowerCase()
+  if (name) return `name:${name}`
+  return `id:${e.id || Math.random()}`
+}
+
 // Real-time Firestore subscription to ALL leaderboard documents (onSnapshot)
 export const subscribeLeaderboard = (onUpdate) => {
   const localEntries = readStoredScores()
@@ -178,23 +188,20 @@ export const subscribeLeaderboard = (onUpdate) => {
           ...docSnapshot.data(),
         }))
 
-        // Deduplicate entries by normalized email or uid
+        // Deduplicate entries by normalized email, uid, or name keeping best score
         const entryMap = new Map()
 
         firestoreEntries.forEach((e) => {
-          const key = (e.email || '').trim().toLowerCase() || e.uid || e.id
-          entryMap.set(key, e)
+          const key = getEntryKey(e)
+          if (!entryMap.has(key) || isBetterScore(e, entryMap.get(key))) {
+            entryMap.set(key, e)
+          }
         })
 
         localEntries.forEach((e) => {
-          const key = (e.email || '').trim().toLowerCase() || e.uid || e.id
-          if (!entryMap.has(key)) {
+          const key = getEntryKey(e)
+          if (!entryMap.has(key) || isBetterScore(e, entryMap.get(key))) {
             entryMap.set(key, e)
-          } else {
-            const existingFS = entryMap.get(key)
-            if (isBetterScore(e, existingFS)) {
-              entryMap.set(key, e)
-            }
           }
         })
 
@@ -236,19 +243,16 @@ export const fetchAllLeaderboard = async () => {
     const entryMap = new Map()
 
     firestoreEntries.forEach((e) => {
-      const key = (e.email || '').trim().toLowerCase() || e.uid || e.id
-      entryMap.set(key, e)
+      const key = getEntryKey(e)
+      if (!entryMap.has(key) || isBetterScore(e, entryMap.get(key))) {
+        entryMap.set(key, e)
+      }
     })
 
     localEntries.forEach((e) => {
-      const key = (e.email || '').trim().toLowerCase() || e.uid || e.id
-      if (!entryMap.has(key)) {
+      const key = getEntryKey(e)
+      if (!entryMap.has(key) || isBetterScore(e, entryMap.get(key))) {
         entryMap.set(key, e)
-      } else {
-        const existingFS = entryMap.get(key)
-        if (isBetterScore(e, existingFS)) {
-          entryMap.set(key, e)
-        }
       }
     })
 

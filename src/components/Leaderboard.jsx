@@ -30,8 +30,11 @@ export default function Leaderboard({ entries: initialEntries = [], currentEmail
   // Find 0-indexed position of current player in full sorted entries
   const playerIndex = entries.findIndex((e) => {
     const emailMatch = normalizedCurrentEmail && (e.email || '').trim().toLowerCase() === normalizedCurrentEmail
-    const nameMatch = normalizedCurrentName && (e.name || '').trim().toLowerCase() === normalizedCurrentName
-    return emailMatch || nameMatch
+    if (emailMatch) return true
+    if (!normalizedCurrentEmail && normalizedCurrentName) {
+      return (e.name || '').trim().toLowerCase() === normalizedCurrentName
+    }
+    return false
   })
 
   const userRankText = playerIndex >= 0 ? `#${playerIndex + 1}` : 'N/A'
@@ -109,9 +112,9 @@ export default function Leaderboard({ entries: initialEntries = [], currentEmail
                 <tbody>
                   {entries.map((entry, index) => {
                     const rank = index + 1
-                    const isYou =
-                      (normalizedCurrentEmail && (entry.email || '').trim().toLowerCase() === normalizedCurrentEmail) ||
-                      (normalizedCurrentName && (entry.name || '').trim().toLowerCase() === normalizedCurrentName)
+                    const isYou = normalizedCurrentEmail
+                      ? (entry.email || '').trim().toLowerCase() === normalizedCurrentEmail
+                      : normalizedCurrentName && (entry.name || '').trim().toLowerCase() === normalizedCurrentName
 
                     let rankIcon = `#${rank}`
                     if (rank === 1) rankIcon = '🥇 1'
