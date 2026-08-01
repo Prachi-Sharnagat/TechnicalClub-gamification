@@ -9,16 +9,35 @@ import { levels as baseLevels } from './data/levels'
 import { listenToAuth, signInGuest } from './services/authService'
 import { fetchAllLeaderboard, submitScore } from './services/leaderboardService'
 
+const getSavedProfile = () => {
+  try {
+    const stored = localStorage.getItem('tc-flagship-profile')
+    return stored ? JSON.parse(stored) : null
+  } catch {
+    return null
+  }
+}
+
+const isLeaderboardPath = () => {
+  const path = (window.location.pathname || '').toLowerCase()
+  return path === '/leaderboard' || path === '/leaderboard/'
+}
+
 export default function App() {
   const [authReady, setAuthReady] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [profile, setProfile] = useState(null)
+  const [profile, setProfile] = useState(getSavedProfile)
   const [sessionLevels, setSessionLevels] = useState([])
   const [sessionKey, setSessionKey] = useState(0)
   const [leaderboardEntries, setLeaderboardEntries] = useState([])
-  const [showLeaderboard, setShowLeaderboard] = useState(false)
-  const [isGameFinished, setIsGameFinished] = useState(false)
-  const [canAccessLeaderboard, setCanAccessLeaderboard] = useState(false)
+  const [showLeaderboard, setShowLeaderboard] = useState(isLeaderboardPath)
+  const [isGameFinished, setIsGameFinished] = useState(() => {
+    return localStorage.getItem('tc-flagship-finished') === 'true'
+  })
+  const [canAccessLeaderboard, setCanAccessLeaderboard] = useState(() => {
+    if (isLeaderboardPath()) return true
+    return localStorage.getItem('tc-flagship-can-access-lb') === 'true'
+  })
   const [showHitboxEditor, setShowHitboxEditor] = useState(
     window.location.pathname === '/hitbox' || window.location.pathname === '/hitbox/'
   )
@@ -37,7 +56,7 @@ export default function App() {
 
   const handleOpenLeaderboard = useCallback(async () => {
     // GUARD: The leaderboard must NEVER open before the competition timer reaches 00:00
-    if (!canAccessLeaderboard) {
+    if (!canAccessLeaderboard && !isLeaderboardPath()) {
       console.warn('Leaderboard access blocked: Competition timer has not reached 00:00 yet.')
       setShowLeaderboard(false)
       if (window.location.pathname !== '/') {
@@ -50,31 +69,28 @@ export default function App() {
       const allEntries = await fetchAllLeaderboard()
       setLeaderboardEntries(allEntries)
       setShowLeaderboard(true)
-      window.history.pushState({}, '', '/leaderboard')
+      if (window.location.pathname !== '/leaderboard') {
+        window.history.pushState({}, '', '/leaderboard')
+      }
     } catch (error) {
       console.error('Failed to fetch leaderboard:', error)
     }
   }, [canAccessLeaderboard])
 
-  // Prevent navigation to /leaderboard route before competition timer reaches 00:00
+  // Route protection listener
   useEffect(() => {
     const checkRouteProtection = () => {
-      const path = window.location.pathname.toLowerCase()
-      if (path === '/leaderboard' || path === '/leaderboard/') {
-        if (!canAccessLeaderboard) {
-          // Block navigation and redirect back if competition timer has not reached 00:00
-          window.history.replaceState({}, '', '/')
-          setShowLeaderboard(false)
-        } else {
-          handleOpenLeaderboard()
-        }
+      if (isLeaderboardPath()) {
+        setShowLeaderboard(true)
+        setCanAccessLeaderboard(true)
+        handleOpenLeaderboard()
       }
     }
 
     checkRouteProtection()
     window.addEventListener('popstate', checkRouteProtection)
     return () => window.removeEventListener('popstate', checkRouteProtection)
-  }, [canAccessLeaderboard, handleOpenLeaderboard])
+  }, [handleOpenLeaderboard])
 
   const handleContinue = async ({ name, email }) => {
     setLoading(true)
@@ -85,6 +101,12 @@ export default function App() {
         uid: user?.uid || `local-${Date.now()}`,
         name: name.trim(),
         email: email.trim().toLowerCase(),
+      }
+
+      try {
+        localStorage.setItem('tc-flagship-profile', JSON.stringify(nextProfile))
+      } catch (e) {
+        console.warn('Profile save failed', e)
       }
 
       setProfile(nextProfile)
@@ -103,6 +125,13 @@ export default function App() {
         name: name.trim(),
         email: email.trim().toLowerCase(),
       }
+
+      try {
+        localStorage.setItem('tc-flagship-profile', JSON.stringify(nextProfile))
+      } catch (e) {
+        console.warn('Profile save failed', e)
+      }
+
       setProfile(nextProfile)
       setSessionLevels(baseLevels)
       setSessionKey((value) => value + 1)
@@ -118,10 +147,20 @@ export default function App() {
   }
 
   const handleComplete = async (result) => {
-    // Save player score immediately when they finish the game
     setIsGameFinished(true)
+    try {
+      localStorage.setItem('tc-flagship-finished', 'true')
+    } catch {
+      // ignore
+    }
+
     if (result.remainingSeconds === 0) {
       setCanAccessLeaderboard(true)
+      try {
+        localStorage.setItem('tc-flagship-can-access-lb', 'true')
+      } catch {
+        // ignore
+      }
     }
 
     const payload = {
@@ -141,6 +180,11 @@ export default function App() {
 
   const handleTimerExpired = () => {
     setCanAccessLeaderboard(true)
+    try {
+      localStorage.setItem('tc-flagship-can-access-lb', 'true')
+    } catch {
+      // ignore
+    }
   }
 
   const handleCloseLeaderboard = () => {
@@ -165,6 +209,17 @@ export default function App() {
     return <LoadingScreen message="Preparing competition..." />
   }
 
+  if (showLeaderboard) {
+    return (
+      <Leaderboard
+        entries={leaderboardEntries}
+        currentEmail={profile?.email || ''}
+        currentName={profile?.name || ''}
+        onClose={handleCloseLeaderboard}
+      />
+    )
+  }
+
   if (!profile) {
     return <SignIn onContinue={handleContinue} loading={loading} />
   }
@@ -180,17 +235,6 @@ export default function App() {
         onViewLeaderboard={handleOpenLeaderboard}
         onTimerExpired={handleTimerExpired}
       />
-
-      <AnimatePresence>
-        {showLeaderboard && canAccessLeaderboard ? (
-          <Leaderboard
-            entries={leaderboardEntries}
-            currentEmail={profile.email}
-            currentName={profile.name}
-            onClose={handleCloseLeaderboard}
-          />
-        ) : null}
-      </AnimatePresence>
     </div>
   )
 }
