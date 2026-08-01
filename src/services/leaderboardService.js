@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   onSnapshot,
@@ -7,6 +8,7 @@ import {
   serverTimestamp,
   setDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 
@@ -169,6 +171,36 @@ const getEntryKey = (e) => {
   return `id:${e.id || Math.random()}`
 }
 
+// Clear local storage leaderboard cache
+export const clearLocalLeaderboard = () => {
+  try {
+    localStorage.removeItem('tc-flagship-scores')
+  } catch (err) {
+    console.warn('LocalStorage clear failed', err)
+  }
+}
+
+// Reset all leaderboard documents from Firestore and clear local cache
+export const resetLeaderboard = async () => {
+  clearLocalLeaderboard()
+  if (db) {
+    try {
+      const colRef = collection(db, LEADERBOARD_COLLECTION)
+      const snapshot = await getDocs(colRef)
+      if (!snapshot.empty) {
+        const batch = writeBatch(db)
+        snapshot.docs.forEach((docSnapshot) => {
+          batch.delete(docSnapshot.ref)
+        })
+        await batch.commit()
+      }
+    } catch (err) {
+      console.error('Failed to clear Firestore leaderboard documents:', err)
+      throw err
+    }
+  }
+}
+
 // Real-time Firestore subscription to ALL leaderboard documents (onSnapshot)
 export const subscribeLeaderboard = (onUpdate) => {
   const localEntries = readStoredScores()
@@ -198,12 +230,18 @@ export const subscribeLeaderboard = (onUpdate) => {
           }
         })
 
-        localEntries.forEach((e) => {
-          const key = getEntryKey(e)
-          if (!entryMap.has(key) || isBetterScore(e, entryMap.get(key))) {
-            entryMap.set(key, e)
-          }
-        })
+        // If server live data is received, update local cache so local storage mirrors server state
+        if (!snapshot.metadata?.fromCache) {
+          const serverList = Array.from(entryMap.values())
+          writeStoredScores(serverList)
+        } else {
+          localEntries.forEach((e) => {
+            const key = getEntryKey(e)
+            if (!entryMap.has(key) || isBetterScore(e, entryMap.get(key))) {
+              entryMap.set(key, e)
+            }
+          })
+        }
 
         const combined = Array.from(entryMap.values())
         const sorted = sortLeaderboardEntries(combined)
@@ -249,12 +287,17 @@ export const fetchAllLeaderboard = async () => {
       }
     })
 
-    localEntries.forEach((e) => {
-      const key = getEntryKey(e)
-      if (!entryMap.has(key) || isBetterScore(e, entryMap.get(key))) {
-        entryMap.set(key, e)
-      }
-    })
+    if (!snapshot.metadata?.fromCache) {
+      const serverList = Array.from(entryMap.values())
+      writeStoredScores(serverList)
+    } else {
+      localEntries.forEach((e) => {
+        const key = getEntryKey(e)
+        if (!entryMap.has(key) || isBetterScore(e, entryMap.get(key))) {
+          entryMap.set(key, e)
+        }
+      })
+    }
 
     const combined = Array.from(entryMap.values())
     return sortLeaderboardEntries(combined)

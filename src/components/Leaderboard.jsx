@@ -95,7 +95,7 @@ export default function Leaderboard({ entries: initialEntries = [], currentEmail
         <div className="leaderboard-card-wrap card-glass">
           {entries.length === 0 ? (
             <div className="leaderboard-empty">
-              No scores submitted yet. Be the first to compete!
+              No competition results yet.
             </div>
           ) : (
             <div className="leaderboard-table-responsive leaderboard-scroll-box">
