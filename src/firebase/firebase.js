@@ -27,4 +27,7 @@ if (hasConfig) {
   db = null
 }
 
+export const isFirestoreConfigured = () => Boolean(db)
+
 export { auth, db }
+

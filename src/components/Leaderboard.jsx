@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import HeaderLogo from './HeaderLogo'
 import { subscribeLeaderboard } from '../services/leaderboardService'
+import { isFirestoreConfigured } from '../firebase/firebase'
 
 const formatTimer = (totalSec) => {
   const safeSec = Math.max(0, totalSec || 0)
@@ -13,6 +14,7 @@ const formatTimer = (totalSec) => {
 export default function Leaderboard({ entries: initialEntries = [], currentEmail, currentName, onClose }) {
   const [entries, setEntries] = useState(initialEntries)
   const userRowRef = useRef(null)
+  const isOnline = isFirestoreConfigured()
 
   const normalizedCurrentEmail = (currentEmail || '').trim().toLowerCase()
   const normalizedCurrentName = (currentName || '').trim().toLowerCase()
@@ -52,8 +54,28 @@ export default function Leaderboard({ entries: initialEntries = [], currentEmail
         <div className="start-hero-header">
           <HeaderLogo size="large" />
           <span className="eyebrow">TECHNICAL CLUB FLAGSHIP</span>
-          <h1 className="start-title" style={{ margin: '0.4rem 0 0.2rem' }}>
+          <h1
+            className="start-title"
+            style={{
+              margin: '0.4rem 0 0.2rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+            }}
+          >
             Live Leaderboard 🏆
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                backgroundColor: isOnline ? '#22c55e' : '#f59e0b',
+                display: 'inline-block',
+                boxShadow: isOnline ? '0 0 8px #22c55e' : '0 0 8px #f59e0b',
+                flexShrink: 0,
+              }}
+            />
           </h1>
           <p className="start-copy" style={{ margin: '0 0 0.8rem' }}>
             Real-Time Competition Rankings

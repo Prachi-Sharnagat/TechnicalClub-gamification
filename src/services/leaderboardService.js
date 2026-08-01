@@ -63,7 +63,24 @@ export const sortLeaderboardEntries = (entries) => {
   })
 }
 
-// Write/Update score operation with duplicate prevention & local storage mirror
+const isBetterScore = (newDoc, existingDoc) => {
+  if (!existingDoc) return true
+  const newScore = Number(newDoc.score) || 0
+  const oldScore = Number(existingDoc.score) || 0
+  if (newScore !== oldScore) return newScore > oldScore
+
+  const newWrong = Number(newDoc.wrongClicks) || 0
+  const oldWrong = Number(existingDoc.wrongClicks) || 0
+  if (newWrong !== oldWrong) return newWrong < oldWrong
+
+  const newTime = Number(newDoc.totalTimeUsed ?? newDoc.timeUsed) || 0
+  const oldTime = Number(existingDoc.totalTimeUsed ?? existingDoc.timeUsed) || 0
+  if (newTime !== oldTime) return newTime < oldTime
+
+  return true
+}
+
+// Write/Update score operation with duplicate prevention & best-score mirror
 export const submitScore = async (payload) => {
   const normalizedEmail = (payload.email || '').trim().toLowerCase()
   const uid = payload.uid || ''
@@ -75,7 +92,7 @@ export const submitScore = async (payload) => {
     completedAt: new Date().toISOString(),
   }
 
-  // 1. Update/Add in Local Storage
+  // 1. Update/Add in Local Storage with Best-Score preservation
   const localEntries = readStoredScores()
   const existingLocalIdx = localEntries.findIndex(
     (e) =>
@@ -85,9 +102,12 @@ export const submitScore = async (payload) => {
 
   let nextLocalEntries = [...localEntries]
   if (existingLocalIdx >= 0) {
-    nextLocalEntries[existingLocalIdx] = {
-      ...nextLocalEntries[existingLocalIdx],
-      ...scoreDoc,
+    const existing = nextLocalEntries[existingLocalIdx]
+    if (isBetterScore(scoreDoc, existing)) {
+      nextLocalEntries[existingLocalIdx] = {
+        ...existing,
+        ...scoreDoc,
+      }
     }
   } else {
     nextLocalEntries.push({
@@ -102,39 +122,34 @@ export const submitScore = async (payload) => {
   // 2. Update/Add in Firestore
   if (db && (normalizedEmail || uid)) {
     try {
-      const colRef = collection(db, LEADERBOARD_COLLECTION)
-      let docIdToUpdate = null
+      const docId = normalizedEmail
+        ? normalizedEmail.replace(/[^a-z0-9]/g, '_')
+        : uid
+        ? uid.replace(/[^a-z0-9]/g, '_')
+        : `user_${Date.now()}`
 
-      if (normalizedEmail) {
+      const targetDocRef = doc(db, LEADERBOARD_COLLECTION, docId)
+
+      // Fetch existing document to verify best-score condition
+      const colRef = collection(db, LEADERBOARD_COLLECTION)
+      let existingFirestoreDoc = null
+
+      try {
         const q = query(colRef, where('email', '==', normalizedEmail))
         const querySnapshot = await getDocs(q)
         if (!querySnapshot.empty) {
-          docIdToUpdate = querySnapshot.docs[0].id
+          existingFirestoreDoc = querySnapshot.docs[0].data()
         }
+      } catch {
+        // Fallback to docRef fetch if query is restricted
       }
 
-      if (!docIdToUpdate && uid) {
-        const q = query(colRef, where('uid', '==', uid))
-        const querySnapshot = await getDocs(q)
-        if (!querySnapshot.empty) {
-          docIdToUpdate = querySnapshot.docs[0].id
+      if (!existingFirestoreDoc || isBetterScore(scoreDoc, existingFirestoreDoc)) {
+        const firestoreData = {
+          ...scoreDoc,
+          serverCompletedAt: serverTimestamp ? serverTimestamp() : new Date().toISOString(),
         }
-      }
-
-      const firestoreData = {
-        ...scoreDoc,
-        serverCompletedAt: serverTimestamp ? serverTimestamp() : new Date().toISOString(),
-      }
-
-      if (docIdToUpdate) {
-        // Update existing document instead of creating duplicate
-        await setDoc(doc(db, LEADERBOARD_COLLECTION, docIdToUpdate), firestoreData, { merge: true })
-      } else {
-        // Create new document with sanitized email or uid as doc ID
-        const docId = normalizedEmail
-          ? normalizedEmail.replace(/[^a-z0-9]/g, '_')
-          : `user_${uid || Date.now()}`
-        await setDoc(doc(db, LEADERBOARD_COLLECTION, docId), firestoreData, { merge: true })
+        await setDoc(targetDocRef, firestoreData, { merge: true })
       }
     } catch (err) {
       console.warn('Firestore write/update failed:', err)
@@ -175,6 +190,11 @@ export const subscribeLeaderboard = (onUpdate) => {
           const key = (e.email || '').trim().toLowerCase() || e.uid || e.id
           if (!entryMap.has(key)) {
             entryMap.set(key, e)
+          } else {
+            const existingFS = entryMap.get(key)
+            if (isBetterScore(e, existingFS)) {
+              entryMap.set(key, e)
+            }
           }
         })
 
@@ -224,6 +244,11 @@ export const fetchAllLeaderboard = async () => {
       const key = (e.email || '').trim().toLowerCase() || e.uid || e.id
       if (!entryMap.has(key)) {
         entryMap.set(key, e)
+      } else {
+        const existingFS = entryMap.get(key)
+        if (isBetterScore(e, existingFS)) {
+          entryMap.set(key, e)
+        }
       }
     })
 
